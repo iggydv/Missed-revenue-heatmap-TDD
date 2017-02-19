@@ -1,27 +1,27 @@
 class DataExtractor:
     #METHODS
     #====================================================================
-    def calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal, danger_level=0):
+    def calculate_missed_revenue_at_branch_for_sku_between(self, sku, branch, date_range, journal, danger_level=0):
         # TODO: implement this
         pass
     
-    def calculate_rate_of_sale(sku, branch, date_range, journal):
+    def calculate_rate_of_sale(self, sku, branch, date_range, journal):
         #TODO: implement this
         pass
 
-    def calculate_stock_level(sku, timestamp, branch, journal):
+    def calculate_stock_level(self, sku, timestamp, branch, journal):
         #TODO: implement this
         pass
 
-    def calculate_rate_of_sales_over_time(journal, date_range, aggregation_fn):
-        #TODO: implement this
-        pass
-
-    def calculate_danger_level():
+    def calculate_rate_of_sales_over_time(self, journal, date_range, aggregation_fn):
         #TODO: implement this
         pass
 
     def calculate_daily_missed_revenue_for_sku():
+        #TODO: implement this
+        pass
+
+    def aggregation_fn():
         #TODO: implement this
         pass
     #====================================================================
