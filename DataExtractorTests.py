@@ -7,58 +7,104 @@ class TestDataExtractorTests(unittest.TestCase):
 #============================================================================================================================================
     def test_calculate_missed_revenue_at_branch_for_sku_between(self):
         d = DataExtractor.DataExtractor()
-        journal = ({'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'},{'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'}) #requires more entries for date_range
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'})#requires more entries for date_range
         date_range = (datetime.date(2016,1,29), datetime.date(2016,1,29)) #tuple (start, end)
-        sku = d._extract_sku(journal)
-        branch = d._extract_branch(journal)
         calculated_missed_revenue = d.calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal)
         #TODO: calculate actual missed revenue
+        #TODO: find out about csv input files - for retail_price
         #actual_missed_revenue = missed_qty * retail_price
         actual_missed_revenue = 15000
         self.assertEqual(calculated_missed_revenue, actual_missed_revenue)
 
     def test_calculate_missed_revenue_with_no_data_for_date_range(self):
         d = DataExtractor.DataExtractor()
-        journal = ({'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'},{'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'}) #requires more entries for date_range
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'}) #requires more entries for date_range
         date_range = (datetime.date(2016,1,30), datetime.date(2016,1,30)) #tuple (start, end)
-        sku = d._extract_sku(journal)
-        branch = d._extract_branch(journal)
         calculated_missed_revenue = d.calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal)
-        self.assertEqual(calculated_missed_revenue, 500)
-        
+        self.assertEqual(calculated_missed_revenue, 0)
+
+    def test_calculate_missed_revenue_with_missing_parameter_in_journal(self):
+        d = DataExtractor.DataExtractor()
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp,'sku':sku,'tag':'sale'}) #requires more entries for date_range
+        date_range = (datetime.date(2016,1,30), datetime.date(2016,1,30)) #tuple (start, end)
+        with self.assertRaises(KeyError):
+             calculated_missed_revenue = d.calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal)
+
+    def test_calculate_missed_revenue_with_malformed_parameter_in_journal(self):
+        d = DataExtractor.DataExtractor()
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-295' #Error in date
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'}) #requires more entries for date_range
+        date_range = (datetime.date(2016,1,30), datetime.date(2016,1,30)) #tuple (start, end)
+        with self.assertRaises(ValueError):
+             calculated_missed_revenue = d.calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal)
+             
+    def test_calculate_missed_revenue_with_invalid_parameter_in_journal(self):
+        d = DataExtractor.DataExtractor()
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='20bbb16-01-295' #Error in date
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'}) #requires more entries for date_range
+        date_range = (datetime.date(2016,1,30), datetime.date(2016,1,30)) #tuple (start, end)
+        with self.assertRaises(TypeError):
+             calculated_missed_revenue = d.calculate_missed_revenue_at_branch_for_sku_between(sku, branch, date_range, journal)
 
     def test_calculate_rate_of_sale(self):
         #this test covers cases where the date_range has no accompanying data
         d = DataExtractor.DataExtractor()
-        journal = ({'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'})
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'})
         date_range = (datetime.date(2016,1,29), datetime.date(2016,1,29)) #tuple (start, end)
-        sku = d._extract_sku(journal)
-        branch = d._extract_branch(journal)
         rate_of_sale = d.calculate_rate_of_sale(sku, branch, date_range, journal)
         #TODO: calculate actual rate of sales
         temp_rate_of_sale = 5 
-        self.assertEqual(rate_of_sale, 5)
+        self.assertEqual(rate_of_sale, temp_rate_of_sale)
         
+    #TODO: test_calculate_rate_of_sale_with_invalid_parameter_in_journal
+    #TODO: test_calculate_rate_of_sale_with_missing_parameter_in_journal
+    #TODO: test_calculate_rate_of_sale_with_malformed_parameter_in_journal
 
+        
     def test_calculate_stock_level(self):
         #Assuming that stock level is known, thus dummy_stock_level == stock_level from extracted with class method
         dummy_stock_level = 1000 #change
         d = DataExtractor.DataExtractor()
-        journal = ({'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'})
-        sku = d._extract_sku(journal)
-        timestamp = d._extract_date(journal)
-        branch = d._extract_branch(journal)
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'})
         stock_level = d.calculate_stock_level(sku, timestamp, branch, journal)
         dummy_stock_level = dummy_stock_level + (-1)#d._extract_increment(journal)
         self.assertEqual(stock_level, 999)
 
+    #TODO: test_calculate_stock_level_with_missing_parameter (sku or branch)
+    #TODO: test_calculate_stock_level_with_invalid_parameter
+    #TODO: test_calculate_stock_level_with_malformed_parameter
+
+        
     def test_calculate_rate_of_sales_over_time(self):
         d = DataExtractor.DataExtractor()
-        journal = ({'branch':'Fourways', 'date':'2016-01-29', 'increment':-1,'sku':'FON6-TPD-WHT','tag':'sale'})
+        sku = 'FON6-TPD-WHT'
+        branch = 'Fourways'
+        timestamp ='2016-01-29'
+        journal = ({'branch':branch, 'date':timestamp, 'increment':-1,'sku':sku,'tag':'sale'})
         date_range = (datetime.date(2016,1,29), datetime.date(2016,1,29)) #tuple (start, end)
         #TODO: calculate rate over time for this specific instance to compare to class method
+        temp_rate_of_sale_over_time = 1 #not actual rate, just a test
         rate_of_sale_over_time = d.calculate_rate_of_sales_over_time(journal, date_range, lambda: d.aggregation_fn())
-        self.assertEqual(rate_of_sale_over_time, 1)
+        self.assertEqual(rate_of_sale_over_time, temp_rate_of_sale_over_time)
 
     #def test_aggregation_fn(self):
         #average = calculate actual average
