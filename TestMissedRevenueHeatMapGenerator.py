@@ -1,20 +1,13 @@
-from dateutil import parser
 import datetime, time
 import unittest
-import pandas as pd
 import MissedRevenueHeatmapGenerator
 
-
-#Use pandas to easily manage data and extract important information
-
-MR = MissedRevenueHeatmapGenerator.MissedRevenueHeatmapGenerator()
 
 # Methods in the MissedRevenueHeatmapGenerator class
 #============================================================================================================================================
 
-#calculate_business_hours(self, branch_dict):
-
 #calculate_stock_level(self,sku, branch, journal, stock_level):
+    #return the stock levels of certain sku at a branch
 
 #calculate_danger_periods(self, sku, branch, danger_level, stock_level):
 
@@ -33,135 +26,129 @@ MR = MissedRevenueHeatmapGenerator.MissedRevenueHeatmapGenerator()
 #   (4) business hours for a branch is 9am - 7pm (10 hours)
 
 class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
-
-    def test_calculate_business_hours(self):
-        #this will test the calculate_business_hours func
-        #to ensure that a branch's business hours are calculated correctly
-        #test parameters
-        branch = 'Cape Town'
-        #assume each branch is represented in a dict, with it's name and business hours
-        #business hours [days, hours_per_day]
-        Branch_info = {'name': branch,'business_hours':[7, 10]} 
-        days, hours = Branch_info['business_hours']
-        expected_business_hours = days * hours
-        #method from MissedRevenueHeatmapGenerator
-        calculated_business_hours = MR.calculate_business_hours(Branch_info)
-        
-        self.assertEqual(calculated_business_hours, expected_business_hours)
-
-
-        
+#============================================================================================================================================
+    sku = 'FON6-TPD-WHT'
+    branch = 'Cape Town'
+    #use cape town branch business hours
+    #what about public holidays?
+    #closed on sunday
+    normal_business_hours = ['9am', '5pm']
+    weekend_business_hours = ['9am', '1pm']
     
-    def test_calculate_stock_level(self):
-        #this will effectively test whether the calculate_stock_level func
-        #calculates the stock level correctly
-        #this function is called at the time of opening/closing or when a journal entry is made
-        #===============
-        #test parameters
-        sku = 'FON6-TPD-WHT'
-        branch = 'Cape Town'
-        date ='2016-01-29T08:15:49.213+02:00'
-        initial_stock_level = 500 #assume stock level
-        #assume that NEW entries from wefix-sample-stock-journal.csv will be parsed into a dict named 'journal'
-        journal = [{'Branch':branch, 'Date':date, 'Increment':-1,'Sku':sku,'Tag':'sale'},{'Branch':branch, 'Date':date, 'Increment':-1,'Sku':sku,'Tag':'sale'}]
-        #use pandas to create a temporary csv file, for extracting data
-        df = pd.DataFrame(journal, columns = ['Branch','Date','Increment','Sku','Tag'])
-        #use pandas count() to count the number of sales
-        sales = df['Tag'][df['Tag'] == 'sale'].count()
-        expected_stock_level = initial_stock_level - sales
-        #method from MissedRevenueHeatmapGenerator
-        calculated_stock_level = MR.calculate_stock_level(sku, branch, journal, initial_stock_level)
+    business_hours = {'monday': normal_business_hours,
+                      'tuesday': normal_business_hours,
+                      'wednesday': normal_business_hours,
+                      'thursday': normal_business_hours,
+                      'saturday': weekend_business_hours}
+    
+    time_open = datetime.datetime(2017,1,3,9)
+    time_close = datetime.datetime(2017,1,3,17)
+
+    sale_1 = time_open + datetime.timedelta(hours=1)
+    sale_2 = time_open + datetime.timedelta(hours=5)
+    purchase_1 = time_open + datetime.timedelta(hours=2)
+    purchase_2 = time_open + datetime.timedelta(hours=7)
+#============================================================================================================================================
+    def test_calculate_hours_a_branch_is_open(self):
+        
+        day_of_the_week = 'monday'
+        #extract information from business_hours dict
+        #what about public holidays
+        #what about sundays?
+        expected_hours_open = 8
+        calculated_hours_open = calculate_hours_a_branch_is_open(branch, day_of_the_week, business_hours)
+        self.assertEqual(calculated_stock_level, expected_stock_level)
+    
+    def test_calculate_stock_level_for_sku_at_specific_branch(self):
+        #is increment the correct word for stock influencer
+        #need sales and purchases to change stock level
+        #assume stock level is:
+        initial_stock_level = 500
+        
+        journal = [{'Branch':branch, 'Date':sale_1, 'Increment':-1,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':purchase_1, 'Increment':3,'Sku':sku,'Tag':'purchase'},
+                   {'Branch':branch, 'Date':sale_2, 'Increment':-2,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':purchase_2, 'Increment':5,'Sku':sku,'Tag':'purchase'}]
+
+        #500 - 1 + 3 - 2 + 5 
+        expected_stock_level = 505
+        calculated_stock_level = calculate_stock_level(sku, branch, journal, initial_stock_level)
         
         self.assertEqual(calculated_stock_level, expected_stock_level)
 
         
 
 
-    def test_calculate_danger_periods(self):
-        #we want to know when stock_level < danger_level
-        #when stock_level < danger_level save the time
-        #then when stock_level > danger_level close the window
-        sku = 'FON6-TPD-WHT'
-        branch = 'Cape Town'
-        danger_level = 10
-        initial_stock_level = 10
-        stock_level = 0 #dummy stock level
-        t1 = ''
-        t2 = ''
-        flag = False
-        journal = [{'Branch':branch, 'Date':'2016-01-29T08:15:49.213+02:00', 'Increment':-1,'Sku':sku,'Tag':'sale'},{'Branch':branch, 'Date':'2016-01-29T10:15:49.213+02:00', 'Increment':+10,'Sku':sku,'Tag':'purchase'}]
-        for entry in journal:
-            effect_on_stock = entry['Increment']
-            stock_level = initial_stock_level + effect_on_stock
-            if stock_level < danger_level and flag == False:
-                t1 = entry['Date']
-                flag = True
-            elif stock_level > danger_level and flag == True:
-                t2 = entry['Date']
-        expected_danger_period = (t1,t2)
-        #method from MissedRevenueHeatmapGenerator
-        calculated_danger_period = MR.calculate_danger_periods(sku, branch,danger_level, stock_level)
+    def test_calculate_low_stock_level_periods(self):
+        #calculate the periods in time for which stock level was below the danger level (zero stock)
+        #assume danger level is 0
+        stock_level = 0
+        journal = [{'Branch':branch, 'Date':time_open, 'Increment':10,'Sku':sku,'Tag':'purchase'},
+                   {'Branch':branch, 'Date':sale_1, 'Increment':-10,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':purchase_1, 'Increment':2,'Sku':sku,'Tag':'purchase'},
+                   {'Branch':branch, 'Date':sale_2, 'Increment':-2,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':purchase_2, 'Increment':20,'Sku':sku,'Tag':'purchase'}]
+        #can stock go below zero?
+        #there are two periods during which stock is 0
+        #period = (date_time_from, date_time_to)
+        period_1 = (sale_1, purchase_1)
+        period_2 = (sale_2, purchase_2)
+        #are these periods during business hours??
+        #what happens if it is outside business hours
+        #return a tuple with time periods when stock was low (zero?)
+        calculated_danger_period = calculate_danger_periods(sku, branch, journal, danger_level=0)
+        self.assertEqual(calculated_danger_period, (period_1, period_2))
+
+
+
+
+    def test_calculate_average_rate_of_sale_per_hour(self):
+        #do we want to calculate ROS for one day only? longer periods?
+        #reuse calculate_hours_a_branch_is_open function - calculate hours open during a specific day
+        #3 Jan 2017 was a Tuesday
+        hours_open = calculate_hours_a_branch_is_open(branch, 'tuesday', business_hours)
         
-        self.assertEqual(calculated_danger_period, expected_danger_period)
-
-
-
-
-    def test_calculate_average_rate_of_sale_per_day(self):
-        sku = 'FON6-TPD-WHT'
-        branch = 'Cape Town'
-        business_hours_per_day = 10 #assume business hours 9am - 7pm
-        date_range = ('2016-01-29T08:15:49.213+02:00', '2016-01-29T10:15:49.213+02:00') #date_range is a tuple containing two dates in string format
-        sales = 0
-        #assume that NEW entries from wefix-sample-stock-journal.csv will be parsed into a dict named 'journal'
-        journal = [{'Branch':branch, 'Date':'2016-01-29T08:15:49.213+02:00', 'Increment':-6,'Sku':sku,'Tag':'sale'},{'Branch':branch, 'Date':'2016-01-29T10:15:49.213+02:00', 'Increment':-7,'Sku':sku,'Tag':'sale'}]
-        #use pandas to create a temporary csv file, for extracting data
-        for entry in journal:
-            if (entry['Date'] >= date_range[0]) and (entry['Date'] <= date_range[1]) and entry['Tag'] == 'sale':
-                sales -= entry['Increment']
-        expected_sales_per_hour = sales/business_hours_per_day
-        #method from MissedRevenueHeatmapGenerator
-        calculated_average_rate_of_sale_per_hour = MR.calculate_average_rate_of_sale_per_day(sku, branch, journal, business_hours_per_day, date_range)
+        journal = [{'Branch':branch, 'Date':sale_1, 'Increment':-6,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':purchase_1, 'Increment':2,'Sku':sku,'Tag':'purchase'},
+                   {'Branch':branch, 'Date':sale_2, 'Increment':-7,'Sku':sku,'Tag':'sale'}]
         
+        #increment of sales is negative - is this correct?
+        #sales = 6 + 7
+        sales = 13
+        expected_average_rate_of_sale_per_hour = sales / hours_open
+        calculated_average_rate_of_sale_per_hour = calculate_average_rate_of_sale_per_hour(sku, branch, journal, business_hours_per_day)
         self.assertEqual(calculated_average_rate_of_sale_per_hour, expected_sales_per_hour)
 
 
 
 
-    def test_calculate_run_rate(self):
-        #assume that the run rate is calculated to predict daily run rate
-        sku = 'FON6-TPD-WHT'
-        branch = 'Cape Town'
-        #assume that NEW entries from wefix-sample-stock-journal.csv will be parsed into a dict named 'journal'
-        journal = [{'Branch':branch, 'Date':'2016-01-29T08:15:49.213+02:00', 'Increment':-6,'Sku':sku,'Tag':'sale'},{'Branch':branch, 'Date':'2016-01-29T10:15:49.213+02:00', 'Increment':-7,'Sku':sku,'Tag':'sale'}]
-        average_sales_per_hour = 1.3
-        business_hours_per_day = 10
-        expected_run_rate = average_sales_per_hour * business_hours_per_day
-        #method from MissedRevenueHeatmapGenerator
-        calculated_run_rate = MR.calculate_run_rate(sku, branch, journal, average_sales_per_hour, business_hours_per_day)
+    def test_calculate_weekly_run_rate(self):
+        #assume that the run rate is calculated to predict weekly run rate
+        #how can we reuse to calculate monthly/quaterly/yearly run rate
+        #TODO: figure out what this is supposed to do, how it will be used
+        journal = [{'Branch':branch, 'Date':sale_1, 'Increment':-6,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':sale_2, 'Increment':-10,'Sku':sku,'Tag':'sale'}]
         
+        hours_open = calculate_hours_a_branch_is_open(branch, 'tuesday', business_hours)
+        average_sales_per_hour = 2
+        days_open = 6
+        
+        expected_run_rate = average_sales_per_hour * hours_open * days_open
+        calculated_run_rate = calculate_run_rate(sku, branch, journal, average_sales_per_hour, hours_open, days_open)
         self.assertEqual(calculated_run_rate, expected_run_rate)
         
 
 
         
     def test_calculate_missed_revenue(self):
-        #test parameters
-        sku = 'FON6-TPD-WHT'
-        branch = 'Cape Town'
-        business_hours_per_day = 10 #assume business hours 9am - 7pm
-        average_rate_of_sales = 1.3 #estimated units sold per hour
-        run_rate = 13
-        retail_price = 699
-        danger_period = ('2016-01-29T08:15:49.213+02:00', '2016-01-29T10:15:49.213+02:00')
-        dt1 = parser.parse(danger_period[0])
-        dt2 = parser.parse(danger_period[1])
-        danger_time = (dt2 - dt1).total_seconds()/3600 # calculate total hours
-        journal = [{'Branch':branch, 'Date':'2016-01-29T08:15:49.213+02:00', 'Increment':-1,'Sku':sku,'Tag':'sale'},{'Branch':branch, 'Date':'2016-01-29T15:15:49.213+02:00', 'Increment':10,'Sku':sku,'Tag':'purchase'}]
+        retail_price = 500
+        #do I use run rate in this function or ROS
+        journal = [{'Branch':branch, 'Date':sale_1, 'Increment':-1,'Sku':sku,'Tag':'sale'},
+                   {'Branch':branch, 'Date':sale_2, 'Increment':10,'Sku':sku,'Tag':'purchase'}]
         #if we assume a constant rate of sales, then we can calculate missed revenue as:
-        expected_missed_revenue = danger_time*average_rate_of_sales*retail_price
+        expected_missed_revenue = low_stock_periods * average_rate_of_sales * retail_price
         #method from MissedRevenueHeatmapGenerator
-        calculated_missed_revenue = MR.calculate_missed_revenue(sku, branch, journal, retail_price, danger_time)
+        calculated_missed_revenue = calculate_missed_revenue(sku, branch, journal, retail_price, low_stock_periods)
         
         self.assertEqual(calculated_missed_revenue, expected_missed_revenue)
 
