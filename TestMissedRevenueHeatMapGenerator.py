@@ -169,11 +169,21 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
     def test_calculate_missed_revenue(self):
         '''Test calculated missed revenue for a certain sku at a branch
            Missed revenue equals, missed quantity of sales, multiplied by the retail price of the item'''
+        
+        journal = [{'Branch':self.branch, 'Date':self.time_branch_opens, 'Increment':10, 'Sku':self.sku, 'Tag':'purchase'},
+                   {'Branch':self.branch, 'Date':self.sale_date_1, 'Increment':-10, 'Sku':self.sku, 'Tag':'sale'},
+                   {'Branch':self.branch, 'Date':self.purchase_date_1, 'Increment':1, 'Sku':self.sku, 'Tag':'purchase'}]
+        #10 sales/ 8 hours
+        average_rate_of_sale_per_hour = 10/8
+        
+        time_period = (self.time_branch_opens, self.time_branch_closes)
+        #calculate the lost sales from journal
+        qty_of_lost_sales = MR.test_calculate_lost_qty_sales_for_a_period(self.sku, self.branch, journal, time_period, average_rate_of_sale_per_hour)
         retail_price = 500
-        qty_of_lost_sales = 3
+        
         expected_missed_revenue = qty_of_lost_sales * retail_price
-        #method from MissedRevenueHeatmapGenerator
-        calculated_missed_revenue = MR.calculate_missed_revenue(self.sku, self.branch, retail_price, qty_of_lost_sales)
+        #calculate missed revenue from journal
+        calculated_missed_revenue = MR.calculate_missed_revenue(self.sku, self.branch, retail_price, journal)
         
         self.assertEqual("calculated_missed_revenue() returned incorrect value", calculated_missed_revenue, expected_missed_revenue)
 

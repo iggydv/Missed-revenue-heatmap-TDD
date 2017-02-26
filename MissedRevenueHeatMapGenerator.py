@@ -29,7 +29,7 @@ class MissedRevenueHeatmapGenerator:
         #return run rate for a period
         pass
     
-    def calculate_missed_revenue(self, sku, branch, retail_price, qty_of_lost_sales):
+    def calculate_missed_revenue(self, sku, branch, retail_price, journal):
         #TODO: Implement this
         #return missed revenue
         pass
