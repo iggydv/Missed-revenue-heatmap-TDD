@@ -23,7 +23,7 @@ MR = MissedRevenueHeatmapGenerator.MissedRevenueHeatmapGenerator()
 #   (1) testing functions for one product(sku) at one branch
 #   (2) parsing of csv files are errorless
 #   (3) constant rate of sale for any product at any branch
-#   (4) business hours for a branch is 9am - 7pm (10 hours)
+#   (4) business hours for a branch is 9am - 5pm (8 hours)
 
 class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
 #============================================================================================================================================
