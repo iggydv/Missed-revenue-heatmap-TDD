@@ -68,7 +68,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
         calculated_hours_open = MR.calculate_hours_a_branch_is_open_per_day(self.branch, day_of_the_week,
                                                                             self.branch_info)
 
-        self.assertEqual("calculate_hours_a_branch_is_open() returned incorrect value", calculated_hours_open,
+        self.assertEqual("calculate_hours_a_branch_is_open_per_day() returned incorrect value", calculated_hours_open,
                          expected_hours_open)
 
     def test_calculate_stock_level_for_sku_at_specific_branch_for_a_period(self):
@@ -95,7 +95,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
                                                                                                        journal,
                                                                                                        initial_stock_level)
 
-        self.assertEqual("calculate_stock_level() returned incorrect value", calculated_stock_level,
+        self.assertEqual("calculate_low_stock_level_periods() returned incorrect value", calculated_stock_level,
                          expected_stock_level)
 
     def test_calculate_low_stock_level_periods(self):
@@ -152,7 +152,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
                                                                                                            journal,
                                                                                                            hours_open,
                                                                                                            time_period)
-        self.assertEqual("calculate_average_rate_of_sale_per_hour() returned incorrect value",
+        self.assertEqual("calculate_average_rate_of_sale_per_hour_for_a_period() returned incorrect value",
                          calculated_average_rate_of_sale_per_hour, expected_average_rate_of_sale_per_hour)
 
     def test_calculate_lost_qty_sales_for_a_period(self):
@@ -178,7 +178,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
         calculated_qty_of_lost_sales = MR.test_calculate_lost_qty_sales_for_a_period(self.sku, self.branch, journal,
                                                                                      time_period,
                                                                                      average_rate_of_sale_per_hour)
-        self.assertEqual("calculated_qty_of_lost_sales() returned incorrect value", calculated_qty_of_lost_sales,
+        self.assertEqual("calculate_lost_qty_sales_for_a_period() returned incorrect value", calculated_qty_of_lost_sales,
                          qty_of_lost_sales)
 
     def test_calculate_run_rate_for_a_week(self):
