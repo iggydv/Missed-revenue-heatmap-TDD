@@ -89,13 +89,13 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
         # Extacted sales/purchases within the given time period
         # 500 - 1 + 3 - 2 + 5
         expected_stock_level = 505
-        calculated_stock_level = MR.test_calculate_stock_level_for_sku_at_specific_branch_for_a_period(self.sku,
+        calculated_stock_level = MR.calculate_stock_level_for_sku_at_specific_branch_for_a_period(self.sku,
                                                                                                        self.branch,
                                                                                                        time_period,
                                                                                                        journal,
                                                                                                        initial_stock_level)
 
-        self.assertEqual("test_calculate_stock_level_for_sku_at_specific_branch_for_a_period() returned incorrect value", calculated_stock_level,
+        self.assertEqual("calculate_stock_level_for_sku_at_specific_branch_for_a_period() returned incorrect value", calculated_stock_level,
                          expected_stock_level)
 
     def test_calculate_low_stock_level_periods(self):
