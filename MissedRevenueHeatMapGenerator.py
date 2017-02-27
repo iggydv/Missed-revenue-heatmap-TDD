@@ -41,7 +41,7 @@ class MissedRevenueHeatmapGenerator:
         #return missed_revenue
         pass
     
-    def test_calculate_stock_level_for_sku_at_specific_branch_for_a_period(self, sku, branch, time_period, journal, stock_level):
+    def calculate_stock_level_for_sku_at_specific_branch_for_a_period(self, sku, branch, time_period, journal, stock_level):
         '''Extract sales and purchases in order to increment/decrement the stock level
            return's the stock level of a sku at a branch'''
         #TODO: Implement this
