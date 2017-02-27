@@ -95,7 +95,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
                                                                                                        journal,
                                                                                                        initial_stock_level)
 
-        self.assertEqual("calculate_low_stock_level_periods() returned incorrect value", calculated_stock_level,
+        self.assertEqual("test_calculate_stock_level_for_sku_at_specific_branch_for_a_period() returned incorrect value", calculated_stock_level,
                          expected_stock_level)
 
     def test_calculate_low_stock_level_periods(self):
@@ -201,7 +201,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
 
         # get run rate for the defined period
         calculated_weekly_run_rate = MR.calculate_run_rate(self.sku, self.branch, journal, period)
-        self.assertEqual("calculated_weekly_run_rate() returned incorrect value", calculated_weekly_run_rate,
+        self.assertEqual("calculated_run_rate() returned incorrect value", calculated_weekly_run_rate,
                          expected_weekly_run_rate)
 
     def test_calculate_run_rate_for_a_month(self):
@@ -224,7 +224,7 @@ class TestMissedRevenueHeatmapGenerator(unittest.TestCase):
 
         # get run rate for the defined period
         calculated_monthly_run_rate = MR.calculate_run_rate(self.sku, self.branch, journal, period)
-        self.assertEqual("calculated_weekly_run_rate() returned incorrect value", calculated_monthly_run_rate,
+        self.assertEqual("calculated_run_rate() returned incorrect value", calculated_monthly_run_rate,
                          expected_monthly_run_rate)
 
     def test_calculate_missed_revenue(self):
